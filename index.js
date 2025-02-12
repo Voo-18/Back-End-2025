@@ -1,29 +1,31 @@
-const http = require("http");
-const { hello, greetings } = require("./helloWorld");
-const moment = require("moment");
 const express = require("express");
-const app = express();
+const moment = require("moment");
+const users = require("./users");
 
-app.get("/", (req, res) => res.send("Hello World"));
-app.get("/about", (req, res) =>
+const app = express();
+const port = 3000;
+
+app.get("/", (req, res) => {
+  res.status(200).send("This is the home page");
+});
+
+app.get("/about", (req, res) => {
   res.status(200).json({
     status: "success",
-    message: "About page",
-    data: [],
-  })
-);
-app.post("/contoh", (req, res) => res.send("request method POST"));
-app.put("/contoh", (req, res) => res.send("Request method PUT"));
-app.delete("/contoh", (req, res) => res.send("Request method DELETE"));
-app.patch("/contoh", (req, res) => res.send("Request method PATCH"));
+    message: "response success",
+    description: "exercise #02",
+    date: moment().format("MMMM Do YYYY, h:mm:ss a"),
+  });
+});
 
-app.all("/universal", (req, res) => res.send(`Request method ${req.method}`));
-// Routing dinamis
-// 1. Menggunakan params
-app.get("/post/:id", (req, res) => res.send(`Artikel ke - ${req.params.id}`));
+app.get("/users", (req, res) => {
+  res.status(200).json(users);
+});
 
-const hostname = "127.0.0.1";
-const port = 3000;
-app.listen(port, hostname, () =>
-  console.log(`Server running at http://${hostname}:${port}`)
-);
+app.use((req, res) => {
+  res.status(404).send("404 Users Not Found");
+});
+
+app.listen(port, () => {
+  console.log(`server running at http://127.0.0.1:${port}`);
+});
