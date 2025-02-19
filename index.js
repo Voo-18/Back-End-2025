@@ -1,31 +1,62 @@
 const express = require("express");
-const moment = require("moment");
+const morgan = require("morgan");
+const moment = require("moment"); // Tambahkan ini
 const users = require("./users");
 
 const app = express();
-const port = 3000;
 
-app.get("/", (req, res) => {
-  res.status(200).send("This is the home page");
+// Middleware untuk logging dengan timestamp
+const log = (req, res, next) => {
+  console.log(
+    moment().format("YYYY-MM-DD HH:mm:ss") +
+      " " +
+      req.ip +
+      " " +
+      req.originalUrl
+  );
+  next();
+};
+
+// Middleware logging dengan Morgan dan log custom
+app.use(morgan("tiny"));
+app.use(log); // Pastikan middleware log digunakan
+
+// Endpoint untuk mendapatkan semua users
+app.get("/users", (req, res) => {
+  res.json(users);
 });
 
-app.get("/about", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "response success",
-    description: "exercise #02",
-    date: moment().format("MMMM Do YYYY, h:mm:ss a"),
+// Endpoint untuk mendapatkan user berdasarkan nama (case insensitive)
+app.get("/users/:name", (req, res) => {
+  const name = req.params.name.toLowerCase();
+  const user = users.find((u) => u.name.toLowerCase() === name);
+
+  if (!user) {
+    return res.status(404).json({ message: "Data user tidak ditemukan" });
+  }
+
+  res.json(user);
+});
+
+// Middleware untuk menangani rute yang tidak ditemukan (404)
+app.use((req, res) => {
+  res.status(404).json({
+    status: "error",
+    message: "resource tidak ditemukan",
   });
 });
 
-app.get("/users", (req, res) => {
-  res.status(200).json(users);
+// Middleware untuk menangani error server
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    status: "error",
+    message: "terjadi kesalahan pada server",
+  });
 });
 
-app.use((req, res) => {
-  res.status(404).send("404 Users Not Found");
-});
-
-app.listen(port, () => {
-  console.log(`server running at http://127.0.0.1:${port}`);
-});
+const hostname = "127.0.0.1";
+const port = 3000;
+app.listen(port, hostname, () =>
+  console.log(`Server running at http://${hostname}:${port}`)
+);
