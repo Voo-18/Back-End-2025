@@ -1,57 +1,33 @@
+const http = require("http");
+const { hello, greetings } = require("./helloWorld");
+const moment = require("moment");
 const express = require("express");
 const morgan = require("morgan");
-const moment = require("moment"); // Tambahkan ini
-const users = require("./users");
-
+// const errorhandler = require("errorhandler");
 const app = express();
+const routers = require("./routers");
 
-// Middleware untuk logging dengan timestamp
+//Middleware
 const log = (req, res, next) => {
   console.log(
-    moment().format("YYYY-MM-DD HH:mm:ss") +
-      " " +
-      req.ip +
-      " " +
-      req.originalUrl
+    moment().format("h:mm:ss a") + " " + req.originalUrl + " " + req.ip
   );
   next();
 };
 
-// Middleware logging dengan Morgan dan log custom
 app.use(morgan("tiny"));
-app.use(log); // Pastikan middleware log digunakan
+// app.use(errorhandler);
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// Endpoint untuk mendapatkan semua users
-app.get("/users", (req, res) => {
-  res.json(users);
-});
+//Routing
+app.use(routers);
 
-// Endpoint untuk mendapatkan user berdasarkan nama (case insensitive)
-app.get("/users/:name", (req, res) => {
-  const name = req.params.name.toLowerCase();
-  const user = users.find((u) => u.name.toLowerCase() === name);
-
-  if (!user) {
-    return res.status(404).json({ message: "Data user tidak ditemukan" });
-  }
-
-  res.json(user);
-});
-
-// Middleware untuk menangani rute yang tidak ditemukan (404)
-app.use((req, res) => {
+//Middleware untuk 404
+app.use((req, res, next) => {
   res.status(404).json({
     status: "error",
     message: "resource tidak ditemukan",
-  });
-});
-
-// Middleware untuk menangani error server
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    status: "error",
-    message: "terjadi kesalahan pada server",
   });
 });
 
