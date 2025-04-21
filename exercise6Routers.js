@@ -128,7 +128,7 @@ routers.get("/order", async (req, res) => {
     });
   } catch (error) {
     res.json({
-      status: "error"
+      status: "error",
     });
   }
 });
